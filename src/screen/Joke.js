@@ -3,7 +3,6 @@
 import React from "react";
 import Axios from "axios";
 import { Input, Button } from "semantic-ui-react";
-import { render } from "react-dom";
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 
@@ -11,8 +10,6 @@ class Joke extends React.Component {
   constructor() {
     super();
     this.state = {
-      next: 0,
-      loading: false,
       layoutName: "default",
       text: "",
       txtArr: [],
@@ -29,9 +26,8 @@ class Joke extends React.Component {
     });
   };
 
-  // getJoke() is responsible of randomly pulls a joke one of the 2 different APIs, namely:
+  // getJoke() is responsible of randomly pulls a joke one of the API, namely:
   //    1. https://v2.jokeapi.dev/joke/Any?type=twopart
-  //    2. https://official-joke-api.appspot.com/jokes/random // for some reason not working correctly
   // and then save it to the state.text, and then saving it as an array to state.textArr
   getJoke = () => {
     const which = Math.round(Math.random()); // return either 0 or 1
@@ -41,9 +37,6 @@ class Joke extends React.Component {
 
     // if (which === 0) {
       Axios.get("https://v2.jokeapi.dev/joke/Any?type=twopart").then((res) => {
-        that.setState(() => ({
-          loading: true
-        }))
 
         const setup = res.data.setup;
         const delivery = res.data.delivery;
@@ -60,34 +53,11 @@ class Joke extends React.Component {
         // saving to txtArr
         that.setState(() => ({
           text: sentence,
-          loading: false
         }));
 
         this.handleText();
-        // this.handleNextChar()
+        this.handleNextChar()
       });
-    // } else {
-    //   Axios.get("https://official-joke-api.appspot.com/jokes/random").then((res) => {
-    //     that.setState(() => ({
-    //       loading: true
-    //     }))
-
-    //     const setup = res.data.setup;
-    //     const delivery = res.data.punchline;
-    //     const sentence = setup + " " + delivery;
-    //     sentence
-    //       .replace(/’/g, "'")
-    //       .replace(/“/g, '"')
-    //       .replace(/”/g, '"')
-    //       .replace(/  +/g, " ");
-    //     that.setState((state) => ({
-    //       text: sentence,
-    //       loading: false
-    //     }));
-
-    //     this.handleText();
-    //   });
-    // }
   };
 
   // match() checks if an input word matches the txtArr
@@ -121,11 +91,6 @@ class Joke extends React.Component {
       }
     }
     return returnArr;
-  };
-
-  componentDidMount = () => {
-    this.getJoke();
-    // this.handleNextChar()
   };
 
   generateAJoke = (ev) => {
@@ -177,6 +142,158 @@ class Joke extends React.Component {
     });
   };
 
+  isUpperCase = (letter) => {
+    var upperArray = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "{", "}", "|", ":", "'", "<", ">", "?"]
+    for (var ii = 0; ii < upperArray.length; ii++) {
+      if (upperArray[ii] === letter) {
+        return true;
+      }
+    }
+
+    var lowerArray = ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "[", "]", "\\", ";", "'", ",", ".", "/"]
+    for (var ii = 0; ii < lowerArray.length; ii++) {
+      if (lowerArray[ii] === letter) {
+        return false;
+      }
+    }
+
+    try {
+      return letter === letter.toUpperCase()
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  toUnShift = (letter) => {
+    var upperArray = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "{", "}", "|", ":", '"', "<", ">", "?"]
+    var lowerArray = ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "[", "]", "\\", ";", "'", ",", ".", "/"]
+    
+    for (var ii = 0; ii < upperArray.length; ii++) {
+      if (upperArray[ii] === letter) {
+        return lowerArray[ii];
+      }
+    }
+    
+    try {
+      return letter.toLowerCase()
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  
+  toShift = (letter) => {
+    var upperArray = ["~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "{", "}", "|", ":", '"', "<", ">", "?"]
+    var lowerArray = ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "[", "]", "\\", ";", "'", ",", ".", "/"]
+    
+    for (var ii = 0; ii < lowerArray.length; ii++) {
+      if (lowerArray[ii] === letter) {
+        return upperArray[ii];
+      }
+    }
+
+    try {
+      return letter.toUpperCase()
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  handleNextChar = () => {
+    if (this.state.inputTxt.length === this.state.text.length) {
+      console.log("finished")
+    } else {
+      var nextKey = this.state.text.split("")[this.state.inputTxt.length]
+      console.log(nextKey)
+
+      if (nextKey === " ") {
+        nextKey = "{space}"
+      }
+
+      if (nextKey === "'") {
+        document.querySelector('[data-skbtn="' + "'" + '"]').classList.add("buttonNext")
+      } else if (nextKey === "\\") {
+        document.querySelector('[data-skbtnuid="default-r1b13"]').classList.add("buttonNext")
+      } else if (this.isUpperCase(nextKey)) {
+        document.querySelector('[data-skbtnuid="default-r3b0"]').classList.add("buttonNext")
+        try {
+          document.querySelector("[data-skbtn='" + this.toUnShift(nextKey) + "']").classList.add("buttonNext")
+          document.querySelector("[data-skbtn='" + this.toShift(nextKey) + "']").classList.add("buttonNext")
+        } catch(e) {
+          console.log(e)
+        }
+      } else {
+        try {
+          document.querySelector("[data-skbtn='" + this.toUnShift(nextKey) + "']").classList.add("buttonNext")
+          document.querySelector("[data-skbtn='" + this.toShift(nextKey) + "']").classList.add("buttonNext")
+        } catch(e) {
+          console.log(e)
+        }
+      }
+    }
+  }
+
+  removeNextWrong = () => {
+    if (this.state.inputArr !== 0) {
+        var nextKey = this.state.text.split("")[this.state.inputTxt.length - 1]
+        console.log(nextKey)
+
+        if (nextKey === " ") {
+          nextKey = "{space}"
+        }
+  
+        if (nextKey === "'") {
+          document.querySelector('[data-skbtn="' + "'" + '"]').classList.remove("buttonNext")
+        } else if (nextKey === "\\") {
+          document.querySelector('[data-skbtnuid="default-r1b13"]').classList.remove("buttonNext")
+        } else if (this.isUpperCase(nextKey)) {
+          try {
+            document.querySelector("[data-skbtn='" + this.toUnShift(nextKey) + "']").classList.remove("buttonNext")
+            document.querySelector("[data-skbtn='" + this.toShift(nextKey) + "']").classList.remove("buttonNext")
+          } catch(e) {
+            console.log(e)
+          }
+        } else {
+          try {
+            document.querySelector("[data-skbtn='" + this.toUnShift(nextKey) + "']").classList.remove("buttonNext")
+            document.querySelector("[data-skbtn='" + this.toShift(nextKey) + "']").classList.remove("buttonNext")
+          } catch(e) {
+            console.log(e)
+          }
+        }
+      }
+  }
+
+  removeNextDel = () => {
+    if (this.state.inputArr !== 0) {
+        var nextKey = this.state.text.split("")[this.state.inputTxt.length]
+        console.log(nextKey)
+
+        if (nextKey === " ") {
+          nextKey = "{space}"
+        }
+  
+        if (nextKey === "'") {
+          document.querySelector('[data-skbtn="' + "'" + '"]').classList.remove("buttonNext")
+        } else if (nextKey === "\\") {
+          document.querySelector('[data-skbtnuid="default-r1b13"]').classList.remove("buttonNext")
+        } else if (this.isUpperCase(nextKey)) {
+          try {
+            document.querySelector("[data-skbtn='" + this.toUnShift(nextKey) + "']").classList.remove("buttonNext")
+            document.querySelector("[data-skbtn='" + this.toShift(nextKey) + "']").classList.remove("buttonNext")
+          } catch(e) {
+            console.log(e)
+          }
+        } else {
+          try {
+            document.querySelector("[data-skbtn='" + this.toUnShift(nextKey) + "']").classList.remove("buttonNext")
+            document.querySelector("[data-skbtn='" + this.toShift(nextKey) + "']").classList.remove("buttonNext")
+          } catch(e) {
+            console.log(e)
+          }
+        }
+      }
+  }
+
   handleKeyPress = (ev) => {
     var key = ev.key
 
@@ -196,6 +313,7 @@ class Joke extends React.Component {
       key = "{space}"
     } else if (key === "Backspace") {
       key = "{bksp}"
+      this.removeNextDel()
     } else if (key === "Tab") {
       key = "{tab}"
     }
@@ -214,32 +332,6 @@ class Joke extends React.Component {
     }
   }
 
-  isUpperCase = (letter) => letter === letter.toUpperCase()
-
-  // handleNextChar = () => {
-  //   if (this.state.inputTxt.length === this.state.text.length) {
-  //     console.log("finished")
-  //   } else {
-  //     var nextKey = this.state.text.split("")[this.state.inputTxt.length]
-  //     console.log(nextKey)
-
-  //     if (nextKey === " ") {
-  //       nextKey = "{space}"
-  //     }
-
-  //     if (nextKey === "'") {
-  //       document.querySelector('[data-skbtn="' + "'" + '"]').classList.add("buttonNext")
-  //     } else if (nextKey === "\\") {
-  //       document.querySelector('[data-skbtnuid="default-r1b13"]').classList.add("buttonNext")
-  //     } else if (this.isUpperCase(nextKey)) {
-  //       document.querySelector('[data-skbtnuid="default-r3b0"]').classList.add("buttonNext")
-  //       document.querySelector("[data-skbtn='" + nextKey.toLowerCase() + "']").classList.add("buttonNext")
-  //     } else {
-  //       document.querySelector("[data-skbtn='" + nextKey + "']").classList.add("buttonNext")
-  //     }
-  //   }
-  // }
-
   handleKeyUp = (ev) => {
     var key = ev.key
 
@@ -252,6 +344,7 @@ class Joke extends React.Component {
       this.handleShift();
     }
 
+
     if (key === " ") {
       key = "{space}"
     } else if (key === "Backspace") {
@@ -263,20 +356,25 @@ class Joke extends React.Component {
     if (ev.code !== "ShiftLeft" && ev.code !== "ShiftRight" && key !== "Meta") {
       if (key === "'") {
         document.querySelector('[data-skbtn="' + "'" + '"]').classList.remove("hg-activeButton")
-        // document.querySelector('[data-skbtn="' + "'" + '"]').classList.remove("buttonNext")
+        document.querySelector('[data-skbtn="' + "'" + '"]').classList.remove("buttonNext")
       } else if (ev.code === "Backslash") {
         document.querySelector('[data-skbtnuid="default-r1b13"]').classList.remove("hg-activeButton")
-        // document.querySelector('[data-skbtnuid="default-r1b13"]').classList.remove("buttonNext")
+        document.querySelector('[data-skbtnuid="default-r1b13"]').classList.remove("buttonNext")
       } else if (key === "Alt" || key === "Control" || key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowUp" || key === "ArrowDown") {
         console.log("alt || control")
       } else {
         document.querySelector("[data-skbtn='" + key + "']").classList.remove("hg-activeButton")
-        // document.querySelector("[data-skbtn='" + key + "']").classList.remove("buttonNext")
+        document.querySelector("[data-skbtn='" + key + "']").classList.remove("buttonNext")
       }
     }
 
-    // this.handleNextChar()
+    this.removeNextWrong()
+    this.handleNextChar()
   }
+
+  componentDidMount = () => {
+    this.getJoke();
+  };
 
   render() {
     return (
@@ -295,6 +393,7 @@ class Joke extends React.Component {
               value={this.state.inputTxt}
               onKeyDown={this.handleKeyPress}
               onKeyUp={this.handleKeyUp}
+              maxLength={this.state.text.length}
             />
             <Button onClick={this.generateAJoke} id="getJokeButton">
               Get a joke
